@@ -2,12 +2,10 @@ package com.shamy.shipment.shipment;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 import static com.shamy.shipment.shipment.ShipmentDTO.*;
 
@@ -34,6 +32,21 @@ public class ShipmentController {
     public ResponseEntity<?> getShipmentById(@PathVariable Long id) {
         ShipmentDTO.ShipmentResponse response = shipmentService.getShipmentById(id);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/track/{trackingNumber}")
+    public ResponseEntity<?> getShipmentByTrackingNumber(@PathVariable String trackingNumber) {
+        ShipmentDTO.ShipmentResponse response = shipmentService.getShipmentByTrackingNumber(trackingNumber);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateShipmentStatus(@PathVariable Long id, @Valid @RequestBody
+    ShipmentDTO.UpdateShipmentRequest request) {
+
+        ShipmentDTO.ShipmentResponse response = shipmentService.updateShipmentStatus(request, id);
+        return ResponseEntity.ok().body(response);
+
     }
 
 }
