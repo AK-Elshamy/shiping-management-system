@@ -27,6 +27,9 @@ public class ShipmentService {
 
 
         Shipment shipmentSaved = shipmentRepository.save(shipment);
+
+        notifyShipmentStatus(shipmentSaved, getStatusMessage(shipmentSaved.getStatus()));
+
         return ShipmentDTO.toShipmentResponse(shipmentSaved);
     }
 
@@ -64,7 +67,10 @@ public class ShipmentService {
         shipment.setStatus(request.status());
         shipment.setCurrentLocation(request.currentLocation());
         Shipment shipmentSaved = shipmentRepository.save(shipment);
-        return ShipmentDTO.toShipmentResponse(shipment);
+
+        notifyShipmentStatus(shipmentSaved, getStatusMessage(shipmentSaved.getStatus()));
+
+        return ShipmentDTO.toShipmentResponse(shipmentSaved);
     }
 
     public void notifyShipmentStatus(Shipment shipment, String message) {
@@ -79,10 +85,22 @@ public class ShipmentService {
                         .message(message)
                         .build();
 
-        messagingTemplate.convertAndSend("topic/shipments/" + shipment.getId(), update);
+        messagingTemplate.convertAndSend("/topic/shipments/" + shipment.getId(), update);
 
-        messagingTemplate.convertAndSend("topic/shipments/", update);
+        messagingTemplate.convertAndSend("/topic/shipments", update);
 
         log.info("Sent shipment status update {}", update);
+    }
+
+    private String getStatusMessage(ShipmentStatus status) {
+        return switch (status) {
+            case ORDER_PLACES -> "Order has been placed";
+            case PROCESSING -> "Order has been processing";
+            case PICKED_UP -> "Package has been picked up";
+            case IN_TRANSIT -> "Package has been in transit";
+            case OUT_FOR_DELIVERY -> "Package has been out-of-delivery";
+            case DELIVERED -> "Package has been delivered";
+            case EXCEPTION -> "Delivery has been failed";
+        };
     }
 }
